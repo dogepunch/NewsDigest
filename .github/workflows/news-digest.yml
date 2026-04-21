@@ -1,0 +1,62 @@
+name: NewsDigest
+
+on:
+  schedule:
+    # 早報：UTC 00:00 = 台灣 08:00
+    - cron: "0 0 * * *"
+    # 晚報：UTC 12:00 = 台灣 20:00
+    - cron: "0 12 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "執行模式"
+        required: true
+        default: "morning"
+        type: choice
+        options:
+          - morning
+          - evening
+
+env:
+  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+  TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+  TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Restore sent articles cache
+        uses: actions/cache@v4
+        with:
+          path: data/sent_articles.json
+          key: sent-articles-${{ github.run_id }}
+          restore-keys: |
+            sent-articles-
+
+      - name: Determine mode
+        id: mode
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "mode=${{ inputs.mode }}" >> $GITHUB_OUTPUT
+          else
+            CRON="${{ github.event.schedule }}"
+            case "$CRON" in
+              "0 0 * * *")  echo "mode=morning" >> $GITHUB_OUTPUT ;;
+              "0 12 * * *") echo "mode=evening" >> $GITHUB_OUTPUT ;;
+              *)            echo "mode=morning" >> $GITHUB_OUTPUT ;;
+            esac
+          fi
+
+      - name: Run NewsDigest
+        run: python main.py --mode ${{ steps.mode.outputs.mode }}

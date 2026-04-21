@@ -1,0 +1,91 @@
+# ============================================
+# NewsDigest - 新聞推送系統設定檔
+# ============================================
+
+# --- 推送管道：Telegram ---
+channel:
+  type: "telegram"
+  telegram:
+    bot_token: ""       # TODO: 填入 BotFather 取得的 token
+    chat_id: ""         # TODO: 填入你的 chat ID
+
+# --- 新聞來源（RSS） ---
+sources:
+  rss_feeds:
+    # 公視新聞（中立）
+    - name: "公視新聞"
+      url: "https://news.pts.org.tw/xml/newsfeed.xml"
+      category: "綜合"
+
+    # 關鍵評論網（中立偏左，綜合分析型）
+    - name: "關鍵評論網"
+      url: "https://feeds.feedburner.com/TheNewsLens"
+      category: "綜合"
+
+    # 上下游（中立偏左，農業/環境/食安）
+    - name: "上下游"
+      url: "https://www.newsmarket.com.tw/feed/atom/"
+      category: "生活"
+
+    # iThome（中立，科技產業專門）
+    - name: "iThome"
+      url: "https://www.ithome.com.tw/rss"
+      category: "科技"
+
+    # BBC 中文繁體（中立，國際新聞）
+    - name: "BBC中文"
+      url: "https://feeds.bbci.co.uk/zhongwen/trad/rss.xml"
+      category: "國際"
+
+# --- 新聞分類 ---
+categories:
+  - 政治
+  - 國際
+  - 財經
+  - 科技
+  - 社會
+  - 生活
+
+# --- 品質控制 ---
+quality_filter:
+  ai_filter_enabled: true
+  clickbait_filter: true
+
+  # 媒體黑名單
+  blocked_sources:
+    - "中天新聞"
+    - "三立新聞"
+
+  # 平衡呈現：同一事件抓取不同立場報導對照
+  balanced_view: true
+
+# --- 排程 ---
+schedule:
+  # 早報：每天 08:00
+  morning_digest:
+    cron: "0 8 * * *"
+    max_articles: 10
+
+  # 即時推送：每 30 分鐘檢查重大新聞
+  breaking_news:
+    cron: "*/30 * * * *"
+    # 重大新聞判定由 AI 決定
+    ai_importance_threshold: "high"
+
+  # 晚報：每天 20:00（可選）
+  evening_digest:
+    enabled: false       # 視情況開啟
+    cron: "0 20 * * *"
+    max_articles: 10
+
+# --- AI 設定（Google Gemini） ---
+ai:
+  provider: "gemini"
+  api_key: ""            # TODO: 填入 Google AI Studio 取得的 API Key
+  model: "gemini-3-flash-preview"  # 2.5 Flash 將於 2026/6/17 停用，3 Flash 為官方接替者
+  features:
+    summarize: true        # 產生新聞摘要
+    categorize: true       # 自動分類
+    clickbait_detect: true # 偵測農場/釣魚標題
+    bias_detect: true      # 偵測立場（用於平衡呈現）
+    importance_judge: true # 判斷是否為重大新聞（即時推送用）
