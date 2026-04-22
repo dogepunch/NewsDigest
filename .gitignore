@@ -4,6 +4,9 @@ __pycache__/
 *.pyo
 *.egg-info/
 
+# Claude Code 本機個人設定
+.claude/settings.local.json
+
 # 環境變數（含 API key、bot token）
 .env
 
