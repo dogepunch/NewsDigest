@@ -4,12 +4,18 @@ import os
 import sys
 
 import yaml
+from dotenv import load_dotenv
 
 from src.fetcher import fetch_all
 from src.dedup import load_sent, filter_new, save_sent
 from src.filter import ai_filter_and_summarize
 from src.formatter import format_digest
 from src.notifier import send_telegram
+
+# 本機開發：從 .env 載入；GitHub Actions：環境變數已由 secrets 注入，load_dotenv 無作用
+load_dotenv()
+
+REQUIRED_ENV_VARS = ("GEMINI_API_KEY", "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID")
 
 logging.basicConfig(
     level=logging.INFO,
@@ -22,15 +28,19 @@ def load_config(path="config.yaml"):
     with open(path, encoding="utf-8") as f:
         cfg = yaml.safe_load(f)
 
-    # 環境變數覆蓋敏感設定（GitHub Actions Secrets）
-    cfg["ai"]["api_key"] = os.environ.get("GEMINI_API_KEY", cfg["ai"]["api_key"])
-    cfg["channel"]["telegram"]["bot_token"] = os.environ.get(
-        "TELEGRAM_BOT_TOKEN", cfg["channel"]["telegram"]["bot_token"]
-    )
-    cfg["channel"]["telegram"]["chat_id"] = os.environ.get(
-        "TELEGRAM_CHAT_ID", cfg["channel"]["telegram"]["chat_id"]
-    )
+    # 機敏欄位只能來自環境變數，config.yaml 不再保存
+    cfg["ai"]["api_key"] = os.environ["GEMINI_API_KEY"]
+    cfg["channel"]["telegram"]["bot_token"] = os.environ["TELEGRAM_BOT_TOKEN"]
+    cfg["channel"]["telegram"]["chat_id"] = os.environ["TELEGRAM_CHAT_ID"]
     return cfg
+
+
+def validate_env():
+    missing = [v for v in REQUIRED_ENV_VARS if not os.environ.get(v)]
+    if missing:
+        log.error("缺少環境變數: %s", ", ".join(missing))
+        log.error("請複製 .env.example 為 .env 並填入金鑰")
+        sys.exit(1)
 
 
 def run(mode: str, cfg: dict):
@@ -112,16 +122,10 @@ def main():
     parser.add_argument("--config", default="config.yaml", help="設定檔路徑")
     args = parser.parse_args()
 
+    # 先驗證環境變數，避免 load_config 拋出 KeyError
+    validate_env()
+
     cfg = load_config(args.config)
-
-    # 檢查必要設定
-    if not cfg["ai"]["api_key"]:
-        log.error("缺少 GEMINI_API_KEY，請設定環境變數或填入 config.yaml")
-        sys.exit(1)
-    if not cfg["channel"]["telegram"]["bot_token"]:
-        log.error("缺少 TELEGRAM_BOT_TOKEN")
-        sys.exit(1)
-
     run(args.mode, cfg)
 
 

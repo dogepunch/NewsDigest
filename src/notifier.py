@@ -39,7 +39,11 @@ def send_telegram(messages: list[str], telegram_cfg: dict):
                     log.error("Telegram 發送失敗 (%d): %s", resp.status_code, resp.text)
                     break
             except requests.RequestException as e:
-                log.error("Telegram 發送錯誤 (attempt %d/%d): %s", attempt, MAX_RETRIES, e)
+                # 不記錄 e 本身：requests 例外訊息可能包含完整 URL（含 bot token）
+                log.error(
+                    "Telegram 發送錯誤 (attempt %d/%d): %s",
+                    attempt, MAX_RETRIES, type(e).__name__,
+                )
                 if attempt < MAX_RETRIES:
                     time.sleep(RETRY_DELAY)
 

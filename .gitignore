@@ -4,6 +4,9 @@ __pycache__/
 *.pyo
 *.egg-info/
 
+# 環境變數（含 API key、bot token）
+.env
+
 # 去重快取（由 GitHub Actions cache 管理）
 data/sent_articles.json
 
@@ -14,3 +17,4 @@ data/sent_articles.json
 # OS
 .DS_Store
 Thumbs.db
+PLAN.md

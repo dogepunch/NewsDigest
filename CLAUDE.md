@@ -10,12 +10,14 @@ NewsDigest 是個人新聞推送系統，自動抓取台灣新聞 RSS，經 Goog
 
 - Python 專案
 - AI 後端：Google Gemini (`gemini-2.5-flash`)
-- 設定檔：`config.yaml`（含 API key，勿提交）
+- 設定檔：`config.yaml`（已不含機敏資訊，可提交）
+- 本機環境變數：`.env`（含 API key、bot token，已 gitignored）
 
 ## 建置與執行
 
 ```bash
 pip install -r requirements.txt
+cp .env.example .env       # 首次設定：複製範本後填入金鑰
 python main.py
 ```
 
@@ -78,4 +80,5 @@ python main.py --mode evening    # 晚報（需在 config.yaml 啟用）
 ## 注意事項
 
 - 所有使用者面向文字使用繁體中文
-- `config.yaml` 含 API key 和 bot token，不可提交至版本控制
+- 機敏資訊（API key、bot token）僅透過環境變數提供，不可寫入 `config.yaml` 或任何提交檔案
+- 本機開發從 `.env` 載入（須先 `cp .env.example .env` 並填值）；GitHub Actions 從 repo Secrets 注入

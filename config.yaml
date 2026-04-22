@@ -3,11 +3,10 @@
 # ============================================
 
 # --- 推送管道：Telegram ---
+# 機敏欄位 (bot_token, chat_id) 改由環境變數 TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID 提供
 channel:
   type: "telegram"
-  telegram:
-    bot_token: ""       # TODO: 填入 BotFather 取得的 token
-    chat_id: ""         # TODO: 填入你的 chat ID
+  telegram: {}
 
 # --- 新聞來源（RSS） ---
 sources:
@@ -79,9 +78,9 @@ schedule:
     max_articles: 10
 
 # --- AI 設定（Google Gemini） ---
+# 機敏欄位 (api_key) 改由環境變數 GEMINI_API_KEY 提供
 ai:
   provider: "gemini"
-  api_key: ""            # TODO: 填入 Google AI Studio 取得的 API Key
   model: "gemini-3-flash-preview"  # 2.5 Flash 將於 2026/6/17 停用，3 Flash 為官方接替者
   features:
     summarize: true        # 產生新聞摘要
